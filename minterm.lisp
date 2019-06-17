@@ -1,21 +1,16 @@
-; cl-minterm - a wafer-thin terminal library for Common LISP (cl-charms
-; may be a more sensible option?) that sets a terminal to raw mode
-;
-; typical leading values for with-rawterm would be 0 for STDIN_FILENO
-; (should be portable) and 0 for TCSANOW (may not be portable? check
-; termios.h)
+;;;;; cl-minterm - wafer thin raw terminal 
 
-(defpackage :cl-minterm (:use :common-lisp :cffi) (:export #:with-rawterm))
-(in-package :cl-minterm)
+(in-package #:cl-user)
+(defpackage #:cl-minterm
+  (:use #:common-lisp #:cffi)
+  (:export #:with-rawterm))
+(in-package #:cl-minterm)
 
 (defcstruct termios
-  (c-iflag :unsigned-int)
-  (c-oflag :unsigned-int)
-  (c-clfag :unsigned-int)
-  (c-lflag :unsigned-int)
+  (c-iflag :unsigned-int) (c-oflag :unsigned-int)
+  (c-clfag :unsigned-int) (c-lflag :unsigned-int)
   (c-cc :unsigned-char :count 20)
-  (c-ispeed :int)
-  (c-ospeed :int))
+  (c-ispeed :int) (c-ospeed :int))
 
 (defcfun "cfmakeraw" :void
          (termios (:pointer (:struct termios))))
@@ -28,6 +23,7 @@
   `(with-foreign-objects ((orig '(:struct termios))
                           (raw '(:struct termios)))
      (tcgetattr ,fd orig)
+     ; TODO how copy struct so don't need 2nd call here?
      (tcgetattr ,fd raw)
      (cfmakeraw raw)
      (tcsetattr ,fd ,action raw)

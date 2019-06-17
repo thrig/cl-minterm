@@ -1,0 +1,24 @@
+cl-minterm - a wafer-thin terminal library for Common LISP (cl-charms
+may be a more sensible option?) that sets a terminal to raw mode
+
+install for ASDF, e.g.
+
+  mkdir -p "$HOME"/.local/share/common-lisp/source
+  cd "$HOME"/.local/share/common-lisp/source
+  git clone ...
+
+typical leading values for with-rawterm would be 0 for STDIN_FILENO
+(should be portable) and 0 for TCSANOW (may not be portable? check
+termios.h) e.g.
+
+  (require :asdf)
+  (asdf:load-system :cl-minterm)
+  (defpackage :foo (:use :cl :cl-minterm))
+  (in-package :foo)
+  (with-rawterm 0 0
+    (format t "~a" 'raw)
+    (finish-output)
+    (read-char))
+  (format t "~a~%" 'back)
+
+portability has not been checked beyond SBCL on OpenBSD 6.5
