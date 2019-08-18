@@ -7,6 +7,8 @@ install for ASDF, e.g.
   cd "$HOME"/.local/share/common-lisp/source
   git clone ...
 
+this also requires CFFI (and its depedencies) to be available
+
 typical leading values for with-rawterm would be 0 for STDIN_FILENO
 (should be portable) and 0 for TCSANOW (may not be portable? check
 termios.h) e.g.
