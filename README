@@ -7,7 +7,9 @@ install for ASDF, e.g.
   cd "$HOME"/.local/share/common-lisp/source
   git clone ...
 
-this also requires CFFI (and its depedencies) to be available
+this also requires CFFI (and its depedencies) to be available; another
+way would be to symlink this directory into ~/quicklisp/local-projects
+and then use Quicklisp instead of ASDF directly
 
 typical leading values for with-rawterm would be 0 for STDIN_FILENO
 (should be portable) and 0 for TCSANOW (may not be portable? check
