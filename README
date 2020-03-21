@@ -1,28 +1,79 @@
-cl-minterm - a wafer-thin terminal library for Common LISP (cl-charms
-may be a more sensible option?) that sets a terminal to raw mode
+cl-minterm - a wafer-thin terminal library for Common LISP (cl-charms or
+cl-blt or cl-sdl2 may be more sensible options?) that sets a terminal to
+raw mode and provides a few ANSI/XTerm Control Sequence related routines
 
-install for ASDF, e.g.
 
-  mkdir -p "$HOME"/.local/share/common-lisp/source
-  cd "$HOME"/.local/share/common-lisp/source
-  git clone ...
+INSTALLATION
 
-this also requires CFFI (and its depedencies) to be available; another
-way would be to symlink this directory into ~/quicklisp/local-projects
-and then use Quicklisp instead of ASDF directly
+install for ASDF; this requires that CFFI (etc) are available:
 
-typical leading values for with-rawterm would be 0 for STDIN_FILENO
-(should be portable) and 0 for TCSANOW (may not be portable? check
-termios.h) e.g.
+    mkdir -p "$HOME"/.local/share/common-lisp/source
+    cd "$HOME"/.local/share/common-lisp/source
+    git clone https://github.com/thrig/cl-minterm
 
-  (require :asdf)
-  (asdf:load-system :cl-minterm)
-  (defpackage :foo (:use :cl :cl-minterm))
-  (in-package :foo)
-  (with-rawterm 0 0
-    (format t "~a" 'raw)
-    (finish-output)
-    (read-char))
-  (format t "~a~%" 'back)
+or install for Quicklisp:
 
-portability has not been checked beyond SBCL on OpenBSD 6.5
+    cd "$HOME"/quicklisp/local-projects
+    git clone https://github.com/thrig/cl-minterm
+
+
+SYNOPSIS
+
+    ;(require :asdf)
+    ;(asdf:load-system :cl-minterm)
+    #-quicklisp
+    (let ((quicklisp-init
+           (merge-pathnames "quicklisp/setup.lisp" (user-homedir-pathname))))
+      (when (probe-file quicklisp-init) (load quicklisp-init)))
+    (ql:quickload :cl-minterm :silent t)
+
+    (defpackage :synopsis (:use :cl :cl-minterm))
+    (in-package :synopsis)
+
+    (define-condition game-over (error)
+      ((reason :initarg :reason :reader game-over-reason)))
+
+    (defun game-loop ()
+      (multiple-value-bind (rows cols) (term-size)
+        (at 1 rows)
+        (format t "~dx~d" cols rows))
+      (at 1 1)
+      (color 255 0 0 1)
+      (princ 'text)
+      (force-output)
+      (case (getch)
+        (#\q (error 'game-over :reason :quit-game))))
+
+    (defun start-game ()
+      (handler-case
+        (unwind-protect
+          (with-rawterm 0 0 (setup-screen +hide-cursor+ +hide-pointer+)
+                        (game-loop))
+          (restore-screen +clear-right+))
+       (game-over (msg)
+         (let ((reason (game-over-reason msg)))
+           (case reason
+             (:quit-game (princ "Be seeing you..."))
+             (otherwise (princ "Well, I guess it's over."))))))
+      #+DARWIN
+      (princ #\Return))
+
+
+PORTABILITY
+
+portability is untested beyond SBCL on OpenBSD 6.6 and Mac OS X 10.11.
+the "action" key to WITH-RAWTERM may not be portable; check termios.h
+for details
+
+
+CAVEATS
+
+behavior will depend on the LISP and what configuration is done in
+that; the terminal may not be restored to the correct state in all
+cases. the REPL and any debugger may need to be be completely disabled
+for best results:
+
+    sbcl --noinform --end-runtime-options \
+      --disable-debugger --noprint --script ...
+
+the interface has and may change without notice
