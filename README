@@ -62,8 +62,8 @@ SYNOPSIS
 PORTABILITY
 
 portability is untested beyond SBCL on OpenBSD 6.6 and Mac OS X 10.11.
-the "action" key to WITH-RAWTERM may not be portable; check termios.h
-for details
+the "action" argument to WITH-RAWTERM may not be portable; check
+termios.h for details
 
 
 CAVEATS
