@@ -68,15 +68,15 @@
           (princ ,string)))
 
 (defmacro with-rawterm (fd action &body body)
-  `(with-foreign-objects ((orig '(:struct termios))
-                          (raw '(:struct termios)))
-     (tcgetattr ,fd orig)
-     (tcgetattr ,fd raw)
-     (cfmakeraw raw)
-     (tcsetattr ,fd ,action raw)
-     (unwind-protect
-       (progn ,@body)
-       (tcsetattr ,fd ,action orig))))
+  (let ((orig (gensym)))
+    `(with-foreign-objects
+      ((,orig '(:struct termios)) (raw '(:struct termios)))
+      (tcgetattr ,fd ,orig)
+      (tcgetattr ,fd raw)
+      (cfmakeraw raw)
+      (tcsetattr ,fd ,action raw)
+      (unwind-protect (progn ,@body)
+        (tcsetattr ,fd ,action ,orig)))))
 
 ; handle <C-c> that SBCL otherwise does unwanted things with
 (defun getch ()
